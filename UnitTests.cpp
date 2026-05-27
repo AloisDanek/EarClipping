@@ -59,13 +59,13 @@ void ExpectThrows(Function function, const std::string& name)
 // ----------------------------------------------------------------------------
 void TestPointHelpers()
 {
-  ExpectNear(Cross({0, 0}, {1, 0}, {1, 1}), 1.0, "left turn cross");
-  ExpectNear(Cross({0, 0}, {1, 0}, {1, -1}), -1.0, "right turn cross");
-  ExpectNear(Cross({0, 0}, {1, 1}, {2, 2}), 0.0, "collinear cross");
+  ExpectNear(Point{0, 0}.Cross({1, 0}, {1, 1}), 1.0, "left turn cross");
+  ExpectNear(Point{0, 0}.Cross({1, 0}, {1, -1}), -1.0, "right turn cross");
+  ExpectNear(Point{0, 0}.Cross({1, 1}, {2, 2}), 0.0, "collinear cross");
 
-  ExpectTrue(NearlyEqual({1.0, 2.0}, {1.0 + 0.5e-12, 2.0 - 0.5e-12}),
+  ExpectTrue(Point{1.0, 2.0}.NearlyEquals({1.0 + 0.5e-12, 2.0 - 0.5e-12}),
              "nearly equal points");
-  ExpectTrue(!NearlyEqual({1.0, 2.0}, {1.0 + 1.0e-9, 2.0}),
+  ExpectTrue(!Point{1.0, 2.0}.NearlyEquals({1.0 + 1.0e-9, 2.0}),
              "different points");
 }
 
@@ -77,8 +77,8 @@ void TestTriangleHelpers()
   const Triangle triangle{{0, 0}, {4, 0}, {0, 3}};
   const Triangle reversed{{0, 3}, {4, 0}, {0, 0}};
 
-  ExpectNear(TriangleArea(triangle), 6.0, "triangle area helper");
-  ExpectNear(TriangleArea(reversed), 6.0, "reversed triangle area helper");
+  ExpectNear(triangle.Area(), 6.0, "triangle area helper");
+  ExpectNear(reversed.Area(), 6.0, "reversed triangle area helper");
   ExpectNear(SumTriangleAreas({triangle, reversed}), 12.0,
              "sum triangle areas helper");
 }
@@ -92,17 +92,17 @@ void TestPolygonHelpers()
 
   ExpectTrue(square.size() == 4, "polygon size");
   ExpectTrue(!square.empty(), "polygon non-empty");
-  ExpectTrue(NearlyEqual(square.front(), {0, 0}), "polygon front");
-  ExpectTrue(NearlyEqual(square.back(), {0, 1}), "polygon back");
-  ExpectTrue(NearlyEqual(square.PreviousVertex(0), {0, 1}), "previous vertex");
-  ExpectTrue(NearlyEqual(square.NextVertex(3), {0, 0}), "next vertex");
+  ExpectTrue(square.front().NearlyEquals({0, 0}), "polygon front");
+  ExpectTrue(square.back().NearlyEquals({0, 1}), "polygon back");
+  ExpectTrue(square.PreviousVertex(0).NearlyEquals({0, 1}), "previous vertex");
+  ExpectTrue(square.NextVertex(3).NearlyEquals({0, 0}), "next vertex");
   ExpectNear(square.SignedArea(), 1.0, "polygon signed area");
   ExpectTrue(square.IsEar(0), "square ear");
 
   const Triangle ear = square.EarCandidateAt(0);
-  ExpectTrue(NearlyEqual(ear.a, {0, 1}), "ear previous point");
-  ExpectTrue(NearlyEqual(ear.b, {0, 0}), "ear current point");
-  ExpectTrue(NearlyEqual(ear.c, {1, 0}), "ear next point");
+  ExpectTrue(ear.a.NearlyEquals({0, 1}), "ear previous point");
+  ExpectTrue(ear.b.NearlyEquals({0, 0}), "ear current point");
+  ExpectTrue(ear.c.NearlyEquals({1, 0}), "ear next point");
 
   square.reverse();
   ExpectNear(square.SignedArea(), -1.0, "reversed polygon signed area");

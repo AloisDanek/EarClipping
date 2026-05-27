@@ -46,7 +46,7 @@ Polygon LoadCsvPolygon(const std::string& path)
     }
   }
 
-  if (polygon.size() >= 2 && NearlyEqual(polygon.front(), polygon.back())) {
+  if (polygon.size() >= 2 && polygon.front().NearlyEquals(polygon.back())) {
     polygon.pop_back();  // Accept either open or explicitly closed CSV input.
   }
   if (polygon.size() < 3) {

@@ -1,15 +1,24 @@
 #include "Triangle.h"
 
 #include <cmath>
+#include <utility>
 
 namespace geometry {
 
 // ----------------------------------------------------------------------------
-// Returns the absolute area of one triangle.
+// Creates a triangle from three points.
 // ----------------------------------------------------------------------------
-double TriangleArea(const Triangle& t)
+Triangle::Triangle(Point a, Point b, Point c)
+    : a(std::move(a)), b(std::move(b)), c(std::move(c))
 {
-  return std::abs(Cross(t.a, t.b, t.c)) * 0.5;
+}
+
+// ----------------------------------------------------------------------------
+// Returns the absolute area of this triangle.
+// ----------------------------------------------------------------------------
+double Triangle::Area() const
+{
+  return std::abs(a.Cross(b, c)) * 0.5;
 }
 
 // ----------------------------------------------------------------------------
@@ -18,7 +27,7 @@ double TriangleArea(const Triangle& t)
 double SumTriangleAreas(const std::vector<Triangle>& triangles)
 {
   double area = 0.0;
-  for (const Triangle& t : triangles) area += TriangleArea(t);
+  for (const Triangle& t : triangles) area += t.Area();
   return area;
 }
 

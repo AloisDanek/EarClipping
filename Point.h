@@ -5,15 +5,19 @@
 
 namespace geometry {
 
-struct Point {
+class Point {
+ public:
+  Point() = default;
+  Point(double x, double y);
+
+  double Cross(const Point& b, const Point& c) const;
+  bool NearlyEquals(const Point& other) const;
+
   double x = 0.0;
   double y = 0.0;
 };
 
 std::ostream& operator<<(std::ostream& os, const Point& p);
-
-double Cross(const Point& a, const Point& b, const Point& c);
-bool NearlyEqual(const Point& a, const Point& b);
 
 }  // namespace geometry
 

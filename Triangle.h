@@ -7,13 +7,18 @@
 
 namespace geometry {
 
-struct Triangle {
+class Triangle {
+ public:
+  Triangle() = default;
+  Triangle(Point a, Point b, Point c);
+
+  double Area() const;
+
   Point a;
   Point b;
   Point c;
 };
 
-double TriangleArea(const Triangle& t);
 double SumTriangleAreas(const std::vector<Triangle>& triangles);
 
 }  // namespace geometry

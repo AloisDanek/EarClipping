@@ -12,9 +12,9 @@ namespace {
 // ----------------------------------------------------------------------------
 bool PointInTriangle(const Point& p, const Triangle& t)
 {
-  const double c1 = Cross(t.a, t.b, p);
-  const double c2 = Cross(t.b, t.c, p);
-  const double c3 = Cross(t.c, t.a, p);
+  const double c1 = t.a.Cross(t.b, p);
+  const double c2 = t.b.Cross(t.c, p);
+  const double c3 = t.c.Cross(t.a, p);
   return c1 >= -kEps && c2 >= -kEps && c3 >= -kEps;
 }
 
@@ -170,7 +170,7 @@ Triangle Polygon::EarCandidateAt(size_t i) const
 bool Polygon::IsEar(size_t i) const
 {
   const Triangle ear = EarCandidateAt(i);
-  if (Cross(ear.a, ear.b, ear.c) <= kEps) {
+  if (ear.a.Cross(ear.b, ear.c) <= kEps) {
     return false;
   }
 

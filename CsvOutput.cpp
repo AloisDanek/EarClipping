@@ -16,7 +16,7 @@ void PrintResult(const std::vector<Triangle>& triangles, std::ostream& out)
   double total = 0.0;
   for (size_t i = 0; i < triangles.size(); ++i) {
     const Triangle& t = triangles[i];
-    const double area = TriangleArea(t);
+    const double area = t.Area();
     total += area;
     out << "triangle " << (i + 1) << ": " << t.a << ", " << t.b << ", "
         << t.c << "  area=" << area << '\n';
@@ -42,7 +42,7 @@ void WriteTrianglesCsv(const std::vector<Triangle>& triangles, const std::string
         << t.a.x << ',' << t.a.y << ','
         << t.b.x << ',' << t.b.y << ','
         << t.c.x << ',' << t.c.y << ','
-        << TriangleArea(t) << '\n';
+        << t.Area() << '\n';
   }
 }
 
