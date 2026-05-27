@@ -52,7 +52,7 @@ Polygon LoadCsvPolygon(const std::string& path)
   if (polygon.size() < 3) {
     throw std::runtime_error("Polygon must contain at least 3 vertices");
   }
-  if (std::abs(PolygonSignedArea(polygon)) <= kEps) {
+  if (std::abs(polygon.SignedArea()) <= kEps) {
     throw std::runtime_error("Polygon area is zero or numerically unstable");
   }
   return polygon;
