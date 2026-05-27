@@ -2,6 +2,7 @@
 #define POLYGON_H
 
 #include "GeometryTypes.h"
+#include "Triangle.h"
 
 #include <initializer_list>
 #include <vector>

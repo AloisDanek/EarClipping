@@ -87,16 +87,20 @@
     <ClCompile Include="EarClipping.cpp" />
     <ClCompile Include="GeometryTypes.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Point.cpp" />
     <ClCompile Include="Polygon.cpp" />
     <ClCompile Include="SvgOutput.cpp" />
+    <ClCompile Include="Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CsvInput.h" />
     <ClInclude Include="CsvOutput.h" />
     <ClInclude Include="EarClipping.h" />
     <ClInclude Include="GeometryTypes.h" />
+    <ClInclude Include="Point.h" />
     <ClInclude Include="Polygon.h" />
     <ClInclude Include="SvgOutput.h" />
+    <ClInclude Include="Triangle.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

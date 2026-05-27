@@ -1,7 +1,7 @@
 #ifndef CSV_OUTPUT_H
 #define CSV_OUTPUT_H
 
-#include "GeometryTypes.h"
+#include "Triangle.h"
 
 #include <iosfwd>
 #include <string>

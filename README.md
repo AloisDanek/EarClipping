@@ -56,7 +56,10 @@ Open `svg_steps/step_000.svg`, `step_001.svg`, etc. in a web browser.
 
 ## Source layout
 
-- `GeometryTypes.h/.cpp`: shared point, polygon, triangle, and geometry helper functions.
+- `Point.h/.cpp`: point data and point geometry helpers.
+- `Triangle.h/.cpp`: triangle data and triangle area helpers.
+- `Polygon.h/.cpp`: polygon data and polygon-specific ear helper methods.
+- `GeometryTypes.h/.cpp`: shared geometry constants and indexing helpers.
 - `EarClipping.h/.cpp`: ear clipping triangulation.
 - `CsvInput.h/.cpp`: polygon CSV reader.
 - `CsvOutput.h/.cpp`: console output and triangle CSV writer.
