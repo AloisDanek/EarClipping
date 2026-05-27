@@ -1,7 +1,7 @@
 #ifndef CSV_INPUT_H
 #define CSV_INPUT_H
 
-#include "GeometryTypes.h"
+#include "Polygon.h"
 
 #include <string>
 

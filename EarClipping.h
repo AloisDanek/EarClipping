@@ -1,7 +1,7 @@
 #ifndef EAR_CLIPPING_H
 #define EAR_CLIPPING_H
 
-#include "GeometryTypes.h"
+#include "Polygon.h"
 
 #include <string>
 #include <vector>

@@ -87,6 +87,7 @@
     <ClCompile Include="EarClipping.cpp" />
     <ClCompile Include="GeometryTypes.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Polygon.cpp" />
     <ClCompile Include="SvgOutput.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +95,7 @@
     <ClInclude Include="CsvOutput.h" />
     <ClInclude Include="EarClipping.h" />
     <ClInclude Include="GeometryTypes.h" />
+    <ClInclude Include="Polygon.h" />
     <ClInclude Include="SvgOutput.h" />
   </ItemGroup>
   <ItemGroup>

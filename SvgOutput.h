@@ -1,7 +1,7 @@
 #ifndef SVG_OUTPUT_H
 #define SVG_OUTPUT_H
 
-#include "GeometryTypes.h"
+#include "Polygon.h"
 
 #include <filesystem>
 #include <string>

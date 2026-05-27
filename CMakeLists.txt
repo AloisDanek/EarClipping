@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(ear_clip
   main.cpp
   GeometryTypes.cpp
+  Polygon.cpp
   EarClipping.cpp
   CsvInput.cpp
   CsvOutput.cpp
