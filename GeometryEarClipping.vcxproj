@@ -91,6 +91,7 @@
     <ClCompile Include="Polygon.cpp" />
     <ClCompile Include="SvgOutput.cpp" />
     <ClCompile Include="Triangle.cpp" />
+    <ClCompile Include="UnitTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CsvInput.h" />
@@ -101,6 +102,7 @@
     <ClInclude Include="Polygon.h" />
     <ClInclude Include="SvgOutput.h" />
     <ClInclude Include="Triangle.h" />
+    <ClInclude Include="UnitTests.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

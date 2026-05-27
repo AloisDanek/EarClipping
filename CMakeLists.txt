@@ -15,6 +15,7 @@ add_executable(ear_clip
   CsvInput.cpp
   CsvOutput.cpp
   SvgOutput.cpp
+  UnitTests.cpp
 )
 
 target_compile_options(ear_clip PRIVATE
