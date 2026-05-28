@@ -3,9 +3,15 @@
 #include "Polygon.h"
 
 #include <algorithm>
+#include <stdexcept>
 #include <utility>
 
 namespace geometry {
+
+// ----------------------------------------------------------------------------
+// Creates an empty polygon.
+// ----------------------------------------------------------------------------
+Polygon::Polygon() = default;
 
 // ----------------------------------------------------------------------------
 // Creates a polygon from an initializer list of vertices.
@@ -16,6 +22,28 @@ Polygon::Polygon(std::initializer_list<Point> vertices) : vertices_(vertices) {}
 // Creates a polygon by taking ownership of an existing vertex vector.
 // ----------------------------------------------------------------------------
 Polygon::Polygon(std::vector<Point> vertices) : vertices_(std::move(vertices)) {}
+
+// ----------------------------------------------------------------------------
+// Copies polygon vertices. Clipping state is rebuilt only when requested.
+// ----------------------------------------------------------------------------
+Polygon::Polygon(const Polygon& other) : vertices_(other.vertices_) {}
+
+// ----------------------------------------------------------------------------
+// Copies polygon vertices and clears any existing clipping state.
+// ----------------------------------------------------------------------------
+Polygon& Polygon::operator=(const Polygon& other)
+{
+  if (this != &other) {
+    vertices_ = other.vertices_;
+    ResetClippingState();
+  }
+  return *this;
+}
+
+// ----------------------------------------------------------------------------
+// Allows unique_ptr<KDTree> to be destroyed with the complete KDTree type.
+// ----------------------------------------------------------------------------
+Polygon::~Polygon() = default;
 
 // ----------------------------------------------------------------------------
 // Returns the number of vertices in the polygon.
@@ -87,6 +115,7 @@ std::vector<Point>::const_iterator Polygon::end() const
 void Polygon::push_back(const Point& point)
 {
   vertices_.push_back(point);
+  ResetClippingState();
 }
 
 // ----------------------------------------------------------------------------
@@ -95,6 +124,7 @@ void Polygon::push_back(const Point& point)
 void Polygon::pop_back()
 {
   vertices_.pop_back();
+  ResetClippingState();
 }
 
 // ----------------------------------------------------------------------------
@@ -103,6 +133,7 @@ void Polygon::pop_back()
 void Polygon::erase(size_t i)
 {
   vertices_.erase(vertices_.begin() + static_cast<std::ptrdiff_t>(i));
+  ResetClippingState();
 }
 
 // ----------------------------------------------------------------------------
@@ -111,6 +142,7 @@ void Polygon::erase(size_t i)
 void Polygon::reverse()
 {
   std::reverse(vertices_.begin(), vertices_.end());
+  ResetClippingState();
 }
 
 // ----------------------------------------------------------------------------
@@ -165,27 +197,88 @@ const Point& Polygon::NextVertex(size_t i) const
 // ----------------------------------------------------------------------------
 // Builds the possible ear triangle at vertex i using active neighbor links.
 // ----------------------------------------------------------------------------
-Triangle Polygon::EarCandidateAt(const std::vector<size_t>& previous,
-                                 const std::vector<size_t>& next,
-                                 size_t i) const
+void Polygon::InitializeClipping()
 {
-  return {vertices_[previous[i]], vertices_[i], vertices_[next[i]]};
+  removed_.assign(vertices_.size(), false);
+  previous_.resize(vertices_.size());
+  next_.resize(vertices_.size());
+  for (size_t i = 0; i < vertices_.size(); ++i) {
+    previous_[i] = PreviousIndex(i, vertices_.size());
+    next_[i] = NextIndex(i, vertices_.size());
+  }
+  tree_ = std::make_unique<KDTree>(*this);
+  remaining_vertices_ = vertices_.size();
+  clipping_initialized_ = true;
+}
+
+// ----------------------------------------------------------------------------
+// Returns the number of vertices that have not been clipped.
+// ----------------------------------------------------------------------------
+size_t Polygon::RemainingVertices() const
+{
+  RequireClippingInitialized();
+  return remaining_vertices_;
+}
+
+// ----------------------------------------------------------------------------
+// Returns true when vertex i has already been clipped.
+// ----------------------------------------------------------------------------
+bool Polygon::IsClipped(size_t i) const
+{
+  RequireClippingInitialized();
+  return removed_[i];
+}
+
+// ----------------------------------------------------------------------------
+// Builds a polygon containing active vertices in linked-list order.
+// ----------------------------------------------------------------------------
+Polygon Polygon::ActivePolygon() const
+{
+  RequireClippingInitialized();
+
+  std::vector<Point> vertices;
+  vertices.reserve(vertices_.size());
+  size_t start = vertices_.size();
+  for (size_t i = 0; i < vertices_.size(); ++i) {
+    if (!removed_[i]) {
+      start = i;
+      break;
+    }
+  }
+
+  if (start == vertices_.size()) {
+    return Polygon(std::move(vertices));
+  }
+
+  size_t current = start;
+  do {
+    vertices.push_back(vertices_[current]);
+    current = next_[current];
+  } while (current != start);
+
+  return Polygon(std::move(vertices));
+}
+
+// ----------------------------------------------------------------------------
+// Builds the possible ear triangle at vertex i using active neighbor links.
+// ----------------------------------------------------------------------------
+Triangle Polygon::EarCandidateAt(size_t i) const
+{
+  RequireClippingInitialized();
+  return {vertices_[previous_[i]], vertices_[i], vertices_[next_[i]]};
 }
 
 // ----------------------------------------------------------------------------
 // Returns true when vertex i is a valid ear among the active vertices.
 // ----------------------------------------------------------------------------
-bool Polygon::IsEar(const std::vector<char>& removed,
-                    const std::vector<size_t>& previous,
-                    const std::vector<size_t>& next,
-                    const KDTree& tree,
-                    size_t i) const
+bool Polygon::IsEar(size_t i) const
 {
-  if (removed[i]) {
+  RequireClippingInitialized();
+  if (removed_[i]) {
     return false;
   }
 
-  const Triangle ear = EarCandidateAt(previous, next, i);
+  const Triangle ear = EarCandidateAt(i);
   if (ear.a.Cross(ear.b, ear.c) <= kEps) {
     return false;
   }
@@ -195,10 +288,10 @@ bool Polygon::IsEar(const std::vector<char>& removed,
   // keeps the scan simple and uses the triangle's bounding box as a cheap
   // precheck before the exact point-in-triangle test.
   const Bounds bounds = ear.GetBounds();
-  const std::vector<size_t> candidates = tree.Query(bounds);
+  const std::vector<size_t> candidates = tree_->Query(bounds);
   for (size_t candidate : candidates) {
-    if (candidate == i || candidate == previous[i] || candidate == next[i] ||
-        removed[candidate]) {
+    if (candidate == i || candidate == previous_[i] || candidate == next_[i] ||
+        removed_[candidate]) {
       continue;
     }
     if (ear.IsInside(vertices_[candidate])) {
@@ -206,6 +299,57 @@ bool Polygon::IsEar(const std::vector<char>& removed,
     }
   }
   return true;
+}
+
+// ----------------------------------------------------------------------------
+// Marks vertex i as removed and connects its active neighbors to each other.
+// ----------------------------------------------------------------------------
+void Polygon::ClipVertex(size_t i)
+{
+  RequireClippingInitialized();
+  removed_[i] = true;
+  next_[previous_[i]] = next_[i];
+  previous_[next_[i]] = previous_[i];
+  --remaining_vertices_;
+}
+
+// ----------------------------------------------------------------------------
+// Returns the final triangle formed by the three remaining active vertices.
+// ----------------------------------------------------------------------------
+Triangle Polygon::FinalTriangle() const
+{
+  RequireClippingInitialized();
+  size_t start = vertices_.size();
+  for (size_t i = 0; i < vertices_.size(); ++i) {
+    if (!removed_[i]) {
+      start = i;
+      break;
+    }
+  }
+  return {vertices_[start], vertices_[next_[start]], vertices_[next_[next_[start]]]};
+}
+
+// ----------------------------------------------------------------------------
+// Clears clipping state after the polygon vertex storage changes.
+// ----------------------------------------------------------------------------
+void Polygon::ResetClippingState()
+{
+  removed_.clear();
+  previous_.clear();
+  next_.clear();
+  tree_.reset();
+  remaining_vertices_ = 0;
+  clipping_initialized_ = false;
+}
+
+// ----------------------------------------------------------------------------
+// Throws when clipping-only methods are used before clipping initialization.
+// ----------------------------------------------------------------------------
+void Polygon::RequireClippingInitialized() const
+{
+  if (!clipping_initialized_) {
+    throw std::runtime_error("Polygon clipping state has not been initialized");
+  }
 }
 
 }  // namespace geometry
