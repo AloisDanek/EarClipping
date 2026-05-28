@@ -2,7 +2,7 @@
 #define KD_TREE_H
 
 #include "Bounds.h"
-#include "Polygon.h"
+#include "Point.h"
 
 #include <memory>
 #include <vector>
@@ -11,7 +11,7 @@ namespace geometry {
 
 class KDTree {
  public:
-  explicit KDTree(const Polygon& polygon);
+  explicit KDTree(const std::vector<Point>& points);
 
   std::vector<size_t> Query(const Bounds& bounds) const;
 
@@ -26,7 +26,7 @@ class KDTree {
   std::unique_ptr<Node> Build(std::vector<size_t> indices, int depth) const;
   void Query(const Node* node, const Bounds& bounds, std::vector<size_t>& result) const;
 
-  const Polygon& polygon_;
+  const std::vector<Point>& points_;
   std::unique_ptr<Node> root_;
 };
 

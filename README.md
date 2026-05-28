@@ -41,7 +41,7 @@ Algorithm notes:
 
 Complexity:
 
-- KD-tree setup: O(n log n) expected time to build a balanced spatial index over the original polygon vertices, with O(n) additional space.
+- KD-tree setup: O(n log n) expected time to build a balanced spatial index over the input points, with O(n) additional space.
 - Per ear candidate: the convexity check is O(1). 
     The "point inside candidate triangle" check first queries the KD-tree with the candidate triangle's bounding box, 
     then runs the exact point-in-triangle test only on vertices returned by that range query.
