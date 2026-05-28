@@ -4,21 +4,6 @@
 #include <utility>
 
 namespace geometry {
-namespace {
-
-// ----------------------------------------------------------------------------
-// For a counter-clockwise triangle, a point is inside or on the boundary
-// when it is always on the left side of each directed triangle edge.
-// ----------------------------------------------------------------------------
-bool PointInTriangle(const Point& p, const Triangle& t)
-{
-  const double c1 = t.a.Cross(t.b, p);
-  const double c2 = t.b.Cross(t.c, p);
-  const double c3 = t.c.Cross(t.a, p);
-  return c1 >= -kEps && c2 >= -kEps && c3 >= -kEps;
-}
-
-}  // namespace
 
 // ----------------------------------------------------------------------------
 // Creates a polygon from an initializer list of vertices.
@@ -183,7 +168,7 @@ bool Polygon::IsEar(size_t i) const
     if (!bounds.Contains(vertices_[j])) {
       continue;
     }
-    if (PointInTriangle(vertices_[j], ear)) {
+    if (ear.IsInside(vertices_[j])) {
       return false;
     }
   }

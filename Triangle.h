@@ -16,6 +16,7 @@ class Triangle {
 
   double Area() const;
   Bounds GetBounds() const;
+  bool IsInside(const Point& point) const;
 
   Point a;
   Point b;

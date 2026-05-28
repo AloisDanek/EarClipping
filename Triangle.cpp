@@ -1,4 +1,5 @@
 #include "Bounds.h"
+#include "GeometryTypes.h"
 #include "Triangle.h"
 
 #include <algorithm>
@@ -32,6 +33,17 @@ Bounds Triangle::GetBounds() const
           std::max({a.x, b.x, c.x}),
           std::min({a.y, b.y, c.y}),
           std::max({a.y, b.y, c.y})};
+}
+
+// ----------------------------------------------------------------------------
+// Returns true when a point lies inside or on this counter-clockwise triangle.
+// ----------------------------------------------------------------------------
+bool Triangle::IsInside(const Point& point) const
+{
+  const double c1 = a.Cross(b, point);
+  const double c2 = b.Cross(c, point);
+  const double c3 = c.Cross(a, point);
+  return c1 >= -kEps && c2 >= -kEps && c3 >= -kEps;
 }
 
 // ----------------------------------------------------------------------------
