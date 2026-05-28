@@ -1,4 +1,5 @@
 #include "Bounds.h"
+#include "KDTree.h"
 #include "Polygon.h"
 
 #include <algorithm>
@@ -162,19 +163,29 @@ const Point& Polygon::NextVertex(size_t i) const
 }
 
 // ----------------------------------------------------------------------------
-// Builds the possible ear triangle at vertex i.
+// Builds the possible ear triangle at vertex i using active neighbor links.
 // ----------------------------------------------------------------------------
-Triangle Polygon::EarCandidateAt(size_t i) const
+Triangle Polygon::EarCandidateAt(const std::vector<size_t>& previous,
+                                 const std::vector<size_t>& next,
+                                 size_t i) const
 {
-  return {PreviousVertex(i), vertices_[i], NextVertex(i)};
+  return {vertices_[previous[i]], vertices_[i], vertices_[next[i]]};
 }
 
 // ----------------------------------------------------------------------------
-// Returns true when vertex i is a valid ear of the current polygon.
+// Returns true when vertex i is a valid ear among the active vertices.
 // ----------------------------------------------------------------------------
-bool Polygon::IsEar(size_t i) const
+bool Polygon::IsEar(const std::vector<char>& removed,
+                    const std::vector<size_t>& previous,
+                    const std::vector<size_t>& next,
+                    const KDTree& tree,
+                    size_t i) const
 {
-  const Triangle ear = EarCandidateAt(i);
+  if (removed[i]) {
+    return false;
+  }
+
+  const Triangle ear = EarCandidateAt(previous, next, i);
   if (ear.a.Cross(ear.b, ear.c) <= kEps) {
     return false;
   }
@@ -184,18 +195,13 @@ bool Polygon::IsEar(size_t i) const
   // keeps the scan simple and uses the triangle's bounding box as a cheap
   // precheck before the exact point-in-triangle test.
   const Bounds bounds = ear.GetBounds();
-  for (size_t j = 0; j < vertices_.size(); ++j) {
-    if (j == i || j == PreviousIndex(i, vertices_.size()) ||
-        j == NextIndex(i, vertices_.size())) {
+  const std::vector<size_t> candidates = tree.Query(bounds);
+  for (size_t candidate : candidates) {
+    if (candidate == i || candidate == previous[i] || candidate == next[i] ||
+        removed[candidate]) {
       continue;
     }
-
-	// Skip vertices that are outside the triangle's bounding box, since they
-    if (!bounds.Contains(vertices_[j])) {
-      continue;
-    }
-
-    if (ear.IsInside(vertices_[j])) {
+    if (ear.IsInside(vertices_[candidate])) {
       return false;
     }
   }

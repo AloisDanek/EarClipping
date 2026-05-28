@@ -10,6 +10,7 @@
 namespace geometry {
 
 class Bounds;
+class KDTree;
 
 class Polygon {
  public:
@@ -37,8 +38,14 @@ class Polygon {
   Bounds GetBounds() const;
   const Point& PreviousVertex(size_t i) const;
   const Point& NextVertex(size_t i) const;
-  Triangle EarCandidateAt(size_t i) const;
-  bool IsEar(size_t i) const;
+  Triangle EarCandidateAt(const std::vector<size_t>& previous,
+                          const std::vector<size_t>& next,
+                          size_t i) const;
+  bool IsEar(const std::vector<char>& removed,
+             const std::vector<size_t>& previous,
+             const std::vector<size_t>& next,
+             const KDTree& tree,
+             size_t i) const;
 
  private:
   std::vector<Point> vertices_;

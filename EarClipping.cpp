@@ -41,50 +41,6 @@ Polygon ActivePolygon(const Polygon& polygon,
 }
 
 // ----------------------------------------------------------------------------
-// Builds the possible ear triangle at vertex i using active neighbor links.
-// ----------------------------------------------------------------------------
-Triangle EarCandidateAt(const Polygon& polygon,
-                        const std::vector<size_t>& previous,
-                        const std::vector<size_t>& next,
-                        size_t i)
-{
-  return {polygon[previous[i]], polygon[i], polygon[next[i]]};
-}
-
-// ----------------------------------------------------------------------------
-// Returns true when vertex i is a valid ear among the active vertices.
-// ----------------------------------------------------------------------------
-bool IsEar(const Polygon& polygon,
-           const std::vector<char>& removed,
-           const std::vector<size_t>& previous,
-           const std::vector<size_t>& next,
-           const KDTree& tree,
-           size_t i)
-{
-  if (removed[i]) {
-    return false;
-  }
-
-  const Triangle ear = EarCandidateAt(polygon, previous, next, i);
-  if (ear.a.Cross(ear.b, ear.c) <= kEps) {
-    return false;
-  }
-
-  const Bounds bounds = ear.GetBounds();
-  const std::vector<size_t> candidates = tree.Query(bounds);
-  for (size_t candidate : candidates) {
-    if (candidate == i || candidate == previous[i] || candidate == next[i] ||
-        removed[candidate]) {
-      continue;
-    }
-    if (ear.IsInside(polygon[candidate])) {
-      return false;
-    }
-  }
-  return true;
-}
-
-// ----------------------------------------------------------------------------
 // Marks vertex i as removed and connects its active neighbors to each other.
 // ----------------------------------------------------------------------------
 void ClipVertex(std::vector<char>& removed,
@@ -154,9 +110,9 @@ std::vector<Triangle> TriangulateEarClipping(Polygon polygon,
     bool clipped = false;
 
     for (size_t i = 0; i < original_size; ++i) {
-      if (!IsEar(polygon, removed, previous, next, tree, i)) continue;
+      if (!polygon.IsEar(removed, previous, next, tree, i)) continue;
 
-      const Triangle ear = EarCandidateAt(polygon, previous, next, i);
+      const Triangle ear = polygon.EarCandidateAt(previous, next, i);
       if (write_svg) {
         const Polygon current_polygon = ActivePolygon(polygon, removed, next);
         WriteSvgStep(output_dir, svg_step++, current_polygon, triangles, &ear, bounds,

@@ -91,6 +91,10 @@ void TestTriangleHelpers()
 void TestPolygonHelpers()
 {
   Polygon square{{0, 0}, {1, 0}, {1, 1}, {0, 1}};
+  std::vector<char> square_removed(square.size(), false);
+  std::vector<size_t> square_previous{3, 0, 1, 2};
+  std::vector<size_t> square_next{1, 2, 3, 0};
+  const KDTree square_tree(square);
 
   ExpectTrue(square.size() == 4, "polygon size");
   ExpectTrue(!square.empty(), "polygon non-empty");
@@ -99,13 +103,14 @@ void TestPolygonHelpers()
   ExpectTrue(square.PreviousVertex(0).NearlyEquals({0, 1}), "previous vertex");
   ExpectTrue(square.NextVertex(3).NearlyEquals({0, 0}), "next vertex");
   ExpectNear(square.SignedArea(), 1.0, "polygon signed area");
-  ExpectTrue(square.IsEar(0), "square ear");
+  ExpectTrue(square.IsEar(square_removed, square_previous, square_next, square_tree, 0),
+             "square ear");
   const Bounds square_bounds = square.GetBounds();
   ExpectTrue(square_bounds.Contains({0, 0}), "polygon bounds contains minimum");
   ExpectTrue(square_bounds.Contains({1, 1}), "polygon bounds contains maximum");
   ExpectTrue(!square_bounds.Contains({2, 2}), "polygon bounds excludes outside point");
 
-  const Triangle ear = square.EarCandidateAt(0);
+  const Triangle ear = square.EarCandidateAt(square_previous, square_next, 0);
   ExpectTrue(ear.a.NearlyEquals({0, 1}), "ear previous point");
   ExpectTrue(ear.b.NearlyEquals({0, 0}), "ear current point");
   ExpectTrue(ear.c.NearlyEquals({1, 0}), "ear next point");
@@ -114,7 +119,13 @@ void TestPolygonHelpers()
   ExpectNear(square.SignedArea(), -1.0, "reversed polygon signed area");
 
   Polygon concave{{0, 0}, {2, 0}, {2, 1}, {1, 0.5}, {0, 1}};
-  ExpectTrue(!concave.IsEar(3), "reflex vertex is not an ear");
+  std::vector<char> concave_removed(concave.size(), false);
+  std::vector<size_t> concave_previous{4, 0, 1, 2, 3};
+  std::vector<size_t> concave_next{1, 2, 3, 4, 0};
+  const KDTree concave_tree(concave);
+  ExpectTrue(!concave.IsEar(concave_removed, concave_previous, concave_next,
+                            concave_tree, 3),
+             "reflex vertex is not an ear");
   concave.erase(3);
   ExpectTrue(concave.size() == 4, "polygon erase");
 }
