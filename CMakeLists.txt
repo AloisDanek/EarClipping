@@ -9,6 +9,7 @@ add_executable(ear_clip
   main.cpp
   Bounds.cpp
   GeometryTypes.cpp
+  KDTree.cpp
   Point.cpp
   Triangle.cpp
   Polygon.cpp

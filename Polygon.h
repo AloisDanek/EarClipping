@@ -9,6 +9,8 @@
 
 namespace geometry {
 
+class Bounds;
+
 class Polygon {
  public:
   Polygon() = default;
@@ -32,6 +34,7 @@ class Polygon {
   void reverse();
 
   double SignedArea() const;
+  Bounds GetBounds() const;
   const Point& PreviousVertex(size_t i) const;
   const Point& NextVertex(size_t i) const;
   Triangle EarCandidateAt(size_t i) const;

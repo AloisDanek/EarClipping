@@ -1,10 +1,103 @@
 #include "EarClipping.h"
+#include "KDTree.h"
 #include "SvgOutput.h"
 
 #include <filesystem>
 #include <stdexcept>
+#include <utility>
+#include <vector>
 
 namespace geometry {
+namespace {
+
+// ----------------------------------------------------------------------------
+// Builds a polygon containing only vertices that have not been clipped yet.
+// ----------------------------------------------------------------------------
+Polygon ActivePolygon(const Polygon& polygon,
+                      const std::vector<char>& removed,
+                      const std::vector<size_t>& next)
+{
+  std::vector<Point> vertices;
+  vertices.reserve(polygon.size());
+  size_t start = polygon.size();
+  for (size_t i = 0; i < polygon.size(); ++i) {
+    if (!removed[i]) {
+      start = i;
+      break;
+    }
+  }
+
+  if (start == polygon.size()) {
+    return Polygon(std::move(vertices));
+  }
+
+  size_t current = start;
+  do {
+    vertices.push_back(polygon[current]);
+    current = next[current];
+  } while (current != start);
+
+  return Polygon(std::move(vertices));
+}
+
+// ----------------------------------------------------------------------------
+// Builds the possible ear triangle at vertex i using active neighbor links.
+// ----------------------------------------------------------------------------
+Triangle EarCandidateAt(const Polygon& polygon,
+                        const std::vector<size_t>& previous,
+                        const std::vector<size_t>& next,
+                        size_t i)
+{
+  return {polygon[previous[i]], polygon[i], polygon[next[i]]};
+}
+
+// ----------------------------------------------------------------------------
+// Returns true when vertex i is a valid ear among the active vertices.
+// ----------------------------------------------------------------------------
+bool IsEar(const Polygon& polygon,
+           const std::vector<char>& removed,
+           const std::vector<size_t>& previous,
+           const std::vector<size_t>& next,
+           const KDTree& tree,
+           size_t i)
+{
+  if (removed[i]) {
+    return false;
+  }
+
+  const Triangle ear = EarCandidateAt(polygon, previous, next, i);
+  if (ear.a.Cross(ear.b, ear.c) <= kEps) {
+    return false;
+  }
+
+  const Bounds bounds = ear.GetBounds();
+  const std::vector<size_t> candidates = tree.Query(bounds);
+  for (size_t candidate : candidates) {
+    if (candidate == i || candidate == previous[i] || candidate == next[i] ||
+        removed[candidate]) {
+      continue;
+    }
+    if (ear.IsInside(polygon[candidate])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// ----------------------------------------------------------------------------
+// Marks vertex i as removed and connects its active neighbors to each other.
+// ----------------------------------------------------------------------------
+void ClipVertex(std::vector<char>& removed,
+                std::vector<size_t>& previous,
+                std::vector<size_t>& next,
+                size_t i)
+{
+  removed[i] = true;
+  next[previous[i]] = next[i];
+  previous[next[i]] = previous[i];
+}
+
+}  // namespace
 
 // ----------------------------------------------------------------------------
 // Triangulates a simple polygon using the ear clipping algorithm.
@@ -39,28 +132,40 @@ std::vector<Triangle> TriangulateEarClipping(Polygon polygon,
   std::vector<Triangle> triangles;
   triangles.reserve(polygon.size() - 2);
 
+  const size_t original_size = polygon.size();
+  std::vector<char> removed(original_size, false);
+  std::vector<size_t> previous(original_size);
+  std::vector<size_t> next(original_size);
+  for (size_t i = 0; i < original_size; ++i) {
+    previous[i] = PreviousIndex(i, original_size);
+    next[i] = NextIndex(i, original_size);
+  }
+  const KDTree tree(polygon);
+
   int svg_step = 0;
   if (write_svg) {
     WriteSvgStep(output_dir, svg_step++, polygon, triangles, nullptr, bounds,
                  "Initial polygon");
   }
 
+  size_t remaining_vertices = polygon.size();
   size_t guard = 0;
-  while (polygon.size() > 3) {
+  while (remaining_vertices > 3) {
     bool clipped = false;
-    const size_t n = polygon.size();
 
-    for (size_t i = 0; i < n; ++i) {
-      if (!polygon.IsEar(i)) continue;
+    for (size_t i = 0; i < original_size; ++i) {
+      if (!IsEar(polygon, removed, previous, next, tree, i)) continue;
 
-      const Triangle ear = polygon.EarCandidateAt(i);
+      const Triangle ear = EarCandidateAt(polygon, previous, next, i);
       if (write_svg) {
-        WriteSvgStep(output_dir, svg_step++, polygon, triangles, &ear, bounds,
+        const Polygon current_polygon = ActivePolygon(polygon, removed, next);
+        WriteSvgStep(output_dir, svg_step++, current_polygon, triangles, &ear, bounds,
                      "Clip ear at vertex " + std::to_string(i));
       }
 
       triangles.push_back(ear);
-      polygon.erase(i);
+      ClipVertex(removed, previous, next, i);
+      --remaining_vertices;
       clipped = true;
       break;
     }
@@ -74,9 +179,18 @@ std::vector<Triangle> TriangulateEarClipping(Polygon polygon,
     }
   }
 
-  const Triangle final_triangle{polygon[0], polygon[1], polygon[2]};
+  size_t final_start = original_size;
+  for (size_t i = 0; i < original_size; ++i) {
+    if (!removed[i]) {
+      final_start = i;
+      break;
+    }
+  }
+  const Triangle final_triangle{
+      polygon[final_start], polygon[next[final_start]], polygon[next[next[final_start]]]};
   if (write_svg) {
-    WriteSvgStep(output_dir, svg_step++, polygon, triangles, &final_triangle, bounds,
+    const Polygon current_polygon = ActivePolygon(polygon, removed, next);
+    WriteSvgStep(output_dir, svg_step++, current_polygon, triangles, &final_triangle, bounds,
                  "Final triangle");
   }
   triangles.push_back(final_triangle);

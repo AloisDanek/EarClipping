@@ -1,7 +1,9 @@
 #include "UnitTests.h"
 
+#include "Bounds.h"
 #include "CsvInput.h"
 #include "EarClipping.h"
+#include "KDTree.h"
 #include "Point.h"
 #include "Polygon.h"
 #include "Triangle.h"
@@ -98,6 +100,10 @@ void TestPolygonHelpers()
   ExpectTrue(square.NextVertex(3).NearlyEquals({0, 0}), "next vertex");
   ExpectNear(square.SignedArea(), 1.0, "polygon signed area");
   ExpectTrue(square.IsEar(0), "square ear");
+  const Bounds square_bounds = square.GetBounds();
+  ExpectTrue(square_bounds.Contains({0, 0}), "polygon bounds contains minimum");
+  ExpectTrue(square_bounds.Contains({1, 1}), "polygon bounds contains maximum");
+  ExpectTrue(!square_bounds.Contains({2, 2}), "polygon bounds excludes outside point");
 
   const Triangle ear = square.EarCandidateAt(0);
   ExpectTrue(ear.a.NearlyEquals({0, 1}), "ear previous point");
@@ -111,6 +117,22 @@ void TestPolygonHelpers()
   ExpectTrue(!concave.IsEar(3), "reflex vertex is not an ear");
   concave.erase(3);
   ExpectTrue(concave.size() == 4, "polygon erase");
+}
+
+// ----------------------------------------------------------------------------
+// Verifies KD-tree rectangle queries over stable polygon vertex indices.
+// ----------------------------------------------------------------------------
+void TestKDTreeQueries()
+{
+  const Polygon polygon{{0, 0}, {2, 0}, {2, 2}, {1, 1}, {0, 2}};
+  const KDTree tree(polygon);
+  const std::vector<size_t> candidates = tree.Query({0.5, 2.0, 0.5, 2.0});
+
+  ExpectTrue(candidates.size() == 2, "KD-tree candidate count");
+  ExpectTrue(candidates[0] == 2 || candidates[1] == 2,
+             "KD-tree includes upper right point");
+  ExpectTrue(candidates[0] == 3 || candidates[1] == 3,
+             "KD-tree includes center point");
 }
 
 // ----------------------------------------------------------------------------
@@ -216,6 +238,7 @@ void RunTests()
   TestPointHelpers();
   TestTriangleHelpers();
   TestPolygonHelpers();
+  TestKDTreeQueries();
   TestTriangulation();
   TestCsvInput();
   TestInvalidPolygons();

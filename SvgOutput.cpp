@@ -1,6 +1,6 @@
+#include "Bounds.h"
 #include "SvgOutput.h"
 
-#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iomanip>
@@ -57,15 +57,8 @@ std::string SvgTrianglePoints(const Triangle& t, const SvgBounds& bounds)
 // ----------------------------------------------------------------------------
 SvgBounds ComputeSvgBounds(const Polygon& polygon)
 {
-  SvgBounds b;
-  b.min_x = b.max_x = polygon.front().x;
-  b.min_y = b.max_y = polygon.front().y;
-  for (const Point& p : polygon) {
-    b.min_x = std::min(b.min_x, p.x);
-    b.max_x = std::max(b.max_x, p.x);
-    b.min_y = std::min(b.min_y, p.y);
-    b.max_y = std::max(b.max_y, p.y);
-  }
+  const Bounds bounds = polygon.GetBounds();
+  SvgBounds b{bounds.MinX(), bounds.MaxX(), bounds.MinY(), bounds.MaxY()};
   if (std::abs(b.max_x - b.min_x) <= kEps) b.max_x = b.min_x + 1.0;
   if (std::abs(b.max_y - b.min_y) <= kEps) b.max_y = b.min_y + 1.0;
   return b;

@@ -87,6 +87,7 @@
     <ClCompile Include="CsvOutput.cpp" />
     <ClCompile Include="EarClipping.cpp" />
     <ClCompile Include="GeometryTypes.cpp" />
+    <ClCompile Include="KDTree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Point.cpp" />
     <ClCompile Include="Polygon.cpp" />
@@ -100,6 +101,7 @@
     <ClInclude Include="CsvOutput.h" />
     <ClInclude Include="EarClipping.h" />
     <ClInclude Include="GeometryTypes.h" />
+    <ClInclude Include="KDTree.h" />
     <ClInclude Include="Point.h" />
     <ClInclude Include="Polygon.h" />
     <ClInclude Include="SvgOutput.h" />

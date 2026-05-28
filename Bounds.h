@@ -10,6 +10,11 @@ class Bounds {
   Bounds() = default;
   Bounds(double min_x, double max_x, double min_y, double max_y);
 
+  double MinX() const;
+  double MaxX() const;
+  double MinY() const;
+  double MaxY() const;
+
   bool Contains(const Point& point) const;
 
  private:

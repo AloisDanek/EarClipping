@@ -1,6 +1,7 @@
 #include "Bounds.h"
 #include "Polygon.h"
 
+#include <algorithm>
 #include <utility>
 
 namespace geometry {
@@ -126,6 +127,25 @@ double Polygon::SignedArea() const
 }
 
 // ----------------------------------------------------------------------------
+// Computes the axis-aligned bounding box for the polygon.
+// ----------------------------------------------------------------------------
+Bounds Polygon::GetBounds() const
+{
+  double min_x = vertices_.front().x;
+  double max_x = vertices_.front().x;
+  double min_y = vertices_.front().y;
+  double max_y = vertices_.front().y;
+
+  for (const Point& point : vertices_) {
+    min_x = std::min(min_x, point.x);
+    max_x = std::max(max_x, point.x);
+    min_y = std::min(min_y, point.y);
+    max_y = std::max(max_y, point.y);
+  }
+  return {min_x, max_x, min_y, max_y};
+}
+
+// ----------------------------------------------------------------------------
 // Returns the vertex before index i, wrapping from vertex 0 to the last vertex.
 // ----------------------------------------------------------------------------
 const Point& Polygon::PreviousVertex(size_t i) const
@@ -170,6 +190,7 @@ bool Polygon::IsEar(size_t i) const
       continue;
     }
 
+	// Skip vertices that are outside the triangle's bounding box, since they
     if (!bounds.Contains(vertices_[j])) {
       continue;
     }
