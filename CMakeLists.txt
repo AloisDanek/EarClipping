@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(ear_clip
   main.cpp
+  Bounds.cpp
   GeometryTypes.cpp
   Point.cpp
   Triangle.cpp

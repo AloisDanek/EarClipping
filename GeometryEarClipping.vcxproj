@@ -82,6 +82,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bounds.cpp" />
     <ClCompile Include="CsvInput.cpp" />
     <ClCompile Include="CsvOutput.cpp" />
     <ClCompile Include="EarClipping.cpp" />
@@ -94,6 +95,7 @@
     <ClCompile Include="UnitTests.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bounds.h" />
     <ClInclude Include="CsvInput.h" />
     <ClInclude Include="CsvOutput.h" />
     <ClInclude Include="EarClipping.h" />

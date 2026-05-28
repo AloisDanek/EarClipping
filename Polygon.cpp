@@ -1,37 +1,10 @@
+#include "Bounds.h"
 #include "Polygon.h"
 
-#include <algorithm>
 #include <utility>
 
 namespace geometry {
 namespace {
-
-struct Bounds {
-  double min_x = 0.0;
-  double max_x = 0.0;
-  double min_y = 0.0;
-  double max_y = 0.0;
-};
-
-// ----------------------------------------------------------------------------
-// Computes the axis-aligned bounding box for a triangle.
-// ----------------------------------------------------------------------------
-Bounds TriangleBounds(const Triangle& t)
-{
-  return {std::min({t.a.x, t.b.x, t.c.x}),
-          std::max({t.a.x, t.b.x, t.c.x}),
-          std::min({t.a.y, t.b.y, t.c.y}),
-          std::max({t.a.y, t.b.y, t.c.y})};
-}
-
-// ----------------------------------------------------------------------------
-// Returns true when a point lies inside or on a bounding box.
-// ----------------------------------------------------------------------------
-bool PointInBounds(const Point& p, const Bounds& bounds)
-{
-  return p.x >= bounds.min_x - kEps && p.x <= bounds.max_x + kEps &&
-         p.y >= bounds.min_y - kEps && p.y <= bounds.max_y + kEps;
-}
 
 // ----------------------------------------------------------------------------
 // For a counter-clockwise triangle, a point is inside or on the boundary
@@ -201,13 +174,13 @@ bool Polygon::IsEar(size_t i) const
     return false;
   }
 
-  const Bounds bounds = TriangleBounds(ear);
+  const Bounds bounds = ear.GetBounds();
   for (size_t j = 0; j < vertices_.size(); ++j) {
     if (j == i || j == PreviousIndex(i, vertices_.size()) ||
         j == NextIndex(i, vertices_.size())) {
       continue;
     }
-    if (!PointInBounds(vertices_[j], bounds)) {
+    if (!bounds.Contains(vertices_[j])) {
       continue;
     }
     if (PointInTriangle(vertices_[j], ear)) {

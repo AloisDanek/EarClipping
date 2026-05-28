@@ -1,5 +1,7 @@
+#include "Bounds.h"
 #include "Triangle.h"
 
+#include <algorithm>
 #include <cmath>
 #include <utility>
 
@@ -19,6 +21,17 @@ Triangle::Triangle(Point a, Point b, Point c)
 double Triangle::Area() const
 {
   return std::abs(a.Cross(b, c)) * 0.5;
+}
+
+// ----------------------------------------------------------------------------
+// Computes the axis-aligned bounding box for this triangle.
+// ----------------------------------------------------------------------------
+Bounds Triangle::GetBounds() const
+{
+  return {std::min({a.x, b.x, c.x}),
+          std::max({a.x, b.x, c.x}),
+          std::min({a.y, b.y, c.y}),
+          std::max({a.y, b.y, c.y})};
 }
 
 // ----------------------------------------------------------------------------

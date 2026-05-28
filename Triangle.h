@@ -7,12 +7,15 @@
 
 namespace geometry {
 
+class Bounds;
+
 class Triangle {
  public:
   Triangle() = default;
   Triangle(Point a, Point b, Point c);
 
   double Area() const;
+  Bounds GetBounds() const;
 
   Point a;
   Point b;
