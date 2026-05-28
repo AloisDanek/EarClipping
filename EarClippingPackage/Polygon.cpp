@@ -206,7 +206,7 @@ void Polygon::InitializeClipping()
     previous_[i] = PreviousIndex(i, vertices_.size());
     next_[i] = NextIndex(i, vertices_.size());
   }
-  tree_ = std::make_unique<KDTree>(*this);
+  tree_ = std::make_unique<KDTree>(vertices_);
   remaining_vertices_ = vertices_.size();
   clipping_initialized_ = true;
 }

@@ -126,8 +126,8 @@ void TestPolygonHelpers()
 // ----------------------------------------------------------------------------
 void TestKDTreeQueries()
 {
-  const Polygon polygon{{0, 0}, {2, 0}, {2, 2}, {1, 1}, {0, 2}};
-  const KDTree tree(polygon);
+  const std::vector<Point> points{{0, 0}, {2, 0}, {2, 2}, {1, 1}, {0, 2}};
+  const KDTree tree(points);
   const std::vector<size_t> candidates = tree.Query({0.5, 2.0, 0.5, 2.0});
 
   ExpectTrue(candidates.size() == 2, "KD-tree candidate count");

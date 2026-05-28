@@ -7,13 +7,13 @@
 namespace geometry {
 
 // ----------------------------------------------------------------------------
-// Builds a KD-tree over the polygon's stable vertex indices.
+// Builds a KD-tree over stable point indices.
 // ----------------------------------------------------------------------------
-KDTree::KDTree(const Polygon& polygon) : polygon_(polygon)
+KDTree::KDTree(const std::vector<Point>& points) : points_(points)
 {
   std::vector<size_t> indices;
-  indices.reserve(polygon_.size());
-  for (size_t i = 0; i < polygon_.size(); ++i) {
+  indices.reserve(points_.size());
+  for (size_t i = 0; i < points_.size(); ++i) {
     indices.push_back(i);
   }
   root_ = Build(std::move(indices), 0);
@@ -43,8 +43,8 @@ std::unique_ptr<KDTree::Node> KDTree::Build(std::vector<size_t> indices,
   const size_t median = indices.size() / 2;
   std::nth_element(indices.begin(), indices.begin() + median, indices.end(),
                    [this, axis](size_t left, size_t right) {
-                     const Point& a = polygon_[left];
-                     const Point& b = polygon_[right];
+                     const Point& a = points_[left];
+                     const Point& b = points_[right];
                      return axis == 0 ? a.x < b.x : a.y < b.y;
                    });
 
@@ -70,7 +70,7 @@ void KDTree::Query(const Node* node,
     return;
   }
 
-  const Point& point = polygon_[node->point_index];
+  const Point& point = points_[node->point_index];
   if (bounds.Contains(point)) {
     result.push_back(node->point_index);
   }
