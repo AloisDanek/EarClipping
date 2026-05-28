@@ -41,8 +41,17 @@ Algorithm notes:
 
 Complexity:
 
-- Time: O(n^3) in this simple implementation, because up to O(n) scans may be needed per clipped ear and each candidate test can scan O(n) vertices.
-- Space: O(n), excluding the output triangle list.
+- KD-tree setup: O(n log n) expected time to build a balanced spatial index over the original polygon vertices, with O(n) additional space.
+- Per ear candidate: the convexity check is O(1). 
+    The "point inside candidate triangle" check first queries the KD-tree with the candidate triangle's bounding box, 
+    then runs the exact point-in-triangle test only on vertices returned by that range query.
+- Typical time: for spatially well-distributed polygons, the KD-tree reduces the number of vertices 
+    tested per ear candidate, so candidate validation is closer to O(log n + k), 
+    where k is the number of vertices inside the candidate triangle's bounding box.
+- Worst-case time: still O(n^3). Ear clipping may examine O(n) candidate vertices for each of O(n) clipped ears,
+    and a KD-tree range query can still return O(n) vertices when the bounding box covers most of the polygon 
+    or the input is pathologically distributed.
+- Space: O(n), excluding the output triangle list. This includes clipping state plus the KD-tree.
 
 ## SVG visualization
 
@@ -59,6 +68,7 @@ Open `svg_steps/step_000.svg`, `step_001.svg`, etc. in a web browser.
 - `Point.h/.cpp`: point data and point geometry helpers.
 - `Triangle.h/.cpp`: triangle data and triangle area helpers.
 - `Polygon.h/.cpp`: polygon data and polygon-specific ear helper methods.
+- `KDTree.h/.cpp`: spatial index used to reduce candidate vertices during ear validation.
 - `GeometryTypes.h/.cpp`: shared geometry constants and indexing helpers.
 - `EarClipping.h/.cpp`: ear clipping triangulation.
 - `CsvInput.h/.cpp`: polygon CSV reader.
