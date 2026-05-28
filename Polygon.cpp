@@ -269,7 +269,17 @@ Triangle Polygon::EarCandidateAt(size_t i) const
 }
 
 // ----------------------------------------------------------------------------
-// Returns true when vertex i is a valid ear among the active vertices.
+// Returns true when vertex i is a valid ear.
+//
+// Test 1: the ear tip must be convex. The polygon is normalized to
+// counter-clockwise order before clipping. In that orientation, a convex corner
+// makes a left turn, which means the cross product is positive. A negative or
+// near-zero value means the corner is reflex or collinear.
+//
+// Test 2: no other polygon vertex may lie inside the candidate ear. If another
+// vertex is inside the triangle, clipping it would cover part of the remaining
+// polygon. Adjacent vertices are skipped because they are already corners of
+// the candidate triangle.
 // ----------------------------------------------------------------------------
 bool Polygon::IsEar(size_t i) const
 {
@@ -279,6 +289,8 @@ bool Polygon::IsEar(size_t i) const
   }
 
   const Triangle ear = EarCandidateAt(i);
+
+  // Test 1: the ear tip must be convex.
   if (ear.a.Cross(ear.b, ear.c) <= kEps) {
     return false;
   }
@@ -294,6 +306,7 @@ bool Polygon::IsEar(size_t i) const
         removed_[candidate]) {
       continue;
     }
+    // Test 2: no other polygon vertex may lie inside the candidate ear.
     if (ear.IsInside(vertices_[candidate])) {
       return false;
     }
