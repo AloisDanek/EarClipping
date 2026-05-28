@@ -295,7 +295,7 @@ bool Polygon::IsEar(size_t i) const
     return false;
   }
 
-  // A spatial index such as a KD-tree could reduce the number of candidate
+  // KD-tree search reduces the number of candidate
   // vertices checked here, especially for large polygons. This implementation
   // keeps the scan simple and uses the triangle's bounding box as a cheap
   // precheck before the exact point-in-triangle test.
