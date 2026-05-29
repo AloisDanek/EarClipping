@@ -61,8 +61,9 @@ std::vector<Triangle> TriangulateEarClipping(Polygon polygon,
                      "Clip ear at vertex " + std::to_string(i));
       }
 
-      triangles.push_back(ear);
-      polygon.ClipVertex(i);
+      triangles.push_back(ear);  // Save the ear triangle before modifying the polygon.
+      polygon.ClipVertex(i);     // Remove the ear tip from the polygon.
+
       clipped = true;
       break;
     }
